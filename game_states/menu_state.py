@@ -1,33 +1,20 @@
 import pygame
+from game_states.game_state import GameState
+from utils.config import *
 
-class MenuState:
+class MenuState(GameState):
     def __init__(self, state_manager):
-        self.state_manager = state_manager
+        super().__init__(state_manager)
         self.font = pygame.font.Font(None, 74)
-        self.title = self.font.render('Concrete Kingdom', True, (255, 255, 255))
-        self.start_text = self.font.render('Press SPACE to Start', True, (255, 255, 255))
-        
-    def enter(self):
-        pass
-        
-    def exit(self):
-        pass
-        
+        self.title = self.font.render('Concrete Kingdom', True, (WHITE))
+        self.start_text = self.font.render('Press SPACE to Start', True, (WHITE))
+    
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 self.state_manager.set_state("playing")
-                
-    def update(self, dt):
-        pass
-        
+
     def draw(self, screen):
-        screen.fill((0, 0, 0))  # Black background
-        
-        # Center the title
-        title_rect = self.title.get_rect(center=(screen.get_width() // 2, 200))
-        screen.blit(self.title, title_rect)
-        
-        # Center the start text
-        start_rect = self.start_text.get_rect(center=(screen.get_width() // 2, 400))
-        screen.blit(self.start_text, start_rect)
+        screen.fill(BLACK)
+        screen.blit(self.title, (screen.get_width()//2 - self.title.get_width()//2, 200))
+        screen.blit(self.start_text, (screen.get_width()//2 - self.start_text.get_width()//2, 300))

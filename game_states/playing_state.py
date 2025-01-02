@@ -1,38 +1,51 @@
 import pygame
+import random
 from entities.player import Player
+from entities.npc import NPC
+from game_states.game_state import GameState
+from utils.config import *
 
-class PlayingState:
+class PlayingState(GameState):
     def __init__(self, state_manager):
-        self.state_manager = state_manager
-        self.player = Player(400, 300)  # Start player in middle of screen
+        super().__init__(state_manager)
         self.all_sprites = pygame.sprite.Group()
+        self.bullets = pygame.sprite.Group()
+        self.player = Player(400, 300, self.bullets)
+        self.npcs = pygame.sprite.Group()
         self.all_sprites.add(self.player)
+        self.spawn_npcs(5)  # Start with 5 NPCs
         
-        # Debug font for showing stats
-        self.font = pygame.font.Font(None, 36)
-        
-    def enter(self):
-        # Called when entering this state
-        pass
-        
-    def exit(self):
-        # Called when exiting this state
-        pass
-        
+    def spawn_npcs(self, count):
+        for _ in range(count):
+            x = random.randint(0, 800)
+            y = random.randint(0, 600)
+            npc = NPC(x, y)
+            self.npcs.add(npc)
+            self.all_sprites.add(npc)
+    
     def handle_event(self, event):
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                self.state_manager.set_state("menu")
-                
+        self.player.handle_event(event)
+
     def update(self, dt):
-        self.all_sprites.update(dt)
+        self.player.update(dt)
+        mouse_pos = pygame.mouse.get_pos()
+        self.player.rotate_to_mouse(mouse_pos)
         
+        # Update NPCs
+        for npc in self.npcs:
+            npc.update(dt, self.player.position)
+        
+        # Update bullets and check collisions
+        for bullet in self.bullets:
+            bullet.update(dt)
+            hits = pygame.sprite.spritecollide(bullet, self.npcs, False)
+            for npc in hits:
+                if npc.take_damage(34):  # 3 shots to kill
+                    npc.kill()
+                    self.player.score += 100
+                bullet.kill()
+                break
+
     def draw(self, screen):
-        screen.fill((50, 50, 50))  # Dark gray background
+        screen.fill(BLACK)
         self.all_sprites.draw(screen)
-        
-        # Draw score/stats
-        score_text = self.font.render(f'Score: {self.player.score}', True, (255, 255, 255))
-        health_text = self.font.render(f'Health: {self.player.health}', True, (255, 255, 255))
-        screen.blit(score_text, (10, 10))
-        screen.blit(health_text, (10, 50))
