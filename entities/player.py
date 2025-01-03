@@ -33,6 +33,11 @@ class Player(pygame.sprite.Sprite):
         self.score = 0
         self.position = pygame.math.Vector2(x, y)
         self.angle = 0
+
+        # invincibility
+        self.invincible = False
+        self.invincible_timer = 0
+        self.invincible_duration = 1.0
         
         # Shooting attributes
         self.shoot_cooldown = 0.2  # Seconds between shots
@@ -74,6 +79,12 @@ class Player(pygame.sprite.Sprite):
         # Update shoot timer
         if self.shoot_timer > 0:
             self.shoot_timer -= dt
+
+        # Update invincibility
+        if self.invincible:
+            self.invincible_timer -= dt
+            if self.invincible_timer <= 0:
+                self.invincible = False
         
         # Handle movement
         keys = pygame.key.get_pressed()
@@ -95,3 +106,9 @@ class Player(pygame.sprite.Sprite):
         # Update position
         self.position += direction * self.speed * dt
         self.rect.center = self.position
+
+    def take_damage(self, amount):
+        if not self.invincible:
+            self.health -= amount
+            self.invincible = True
+            self.invincible_timer = self.invincible_duration
